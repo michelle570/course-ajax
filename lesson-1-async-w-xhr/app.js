@@ -8,5 +8,51 @@
         e.preventDefault();
         responseContainer.innerHTML = '';
         searchedForText = searchField.value;
+
+//start
+const unsplashRequest = new XMLHttpRequest();
+
+unsplashRequest.open('GET', `https://api.unsplash.com/search/photos?page=1&query=${searchedForText}`);
+unsplashRequest.onload = addImage;
+unsplashRequest.setRequestHeader('Authorization', 'Client-ID 11198af7eef28c65d3088bb2ec307766ff2c9fa4e3a0d460c07b60aa8ed2993e');
+unsplashRequest.send();
+
+function addImage(){
+  let htmlcontent ='';
+  const data = JSON.parse(this.responseText);
+
+  if (data && data.results && data.results[0]) {
+    const firstImage = data.results[0];
+
+    //htmlcontent = '<figure><img src="${firstImage.urls.regular}  alt="${searchedForText}"><figcaption>${searchedForText} by ${firstImage.user.name}</figcaption></figure>';
+    htmlcontent = "<figure><img src='" + firstImage.urls.regular +  "' alt='" + searchedForText + "'><figcaption>" + searchedForText + " by " + firstImage.user.name + "</figcaption></figure>";
+    //htmlcontent = firstImage.urls.regular;
+
+  } else {
+    htmlcontent = '<div class="error-no-image">No images available</div>';
+  }
+  responseContainer.insertAdjacentHTML('afterbegin', htmlcontent);
+}
+
+//end
+
+//add articles
+function addArticles () {
+  let htmlcontent = '';
+  const data = JSON.parse(this.responseText);
+  if (data.response && data.response.docs && data.response.docs.length > 1) {
+    htmlcontent = '<ul>' + data.response.docs.map(article => "<li class='article'><h2><a href=" + article.web_url + ">" + article.headline.main + "</a></h2><p>" + article.snippet + "</p></li>").join('') + "</ul>";
+  } else {
+    htmlcontent = '<div class="error-no-articles">No articles available</div>';
+  }
+
+  responseContainer.insertAdjacentHTML('beforeend', htmlcontent);
+
+}
+const articleRequest = new XMLHttpRequest();
+articleRequest.onload = addArticles;
+articleRequest.open('GET', 'http://api.nytimes.com/svc/search/v2/articlesearch.json?q=' + searchedForText + '&api-key=vPqkPSW71ajLIXRWeZH6k2qvydEba0oJ');
+articleRequest.send();
+//end articles
     });
 })();
